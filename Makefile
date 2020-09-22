@@ -1,6 +1,7 @@
 include config.mk
 
-DIRS=lib client src
+LIBDIRS=lib
+DIRS=client src
 DOCDIRS=man
 DISTDIRS=man
 DISTFILES= \
@@ -37,7 +38,7 @@ DISTFILES= \
 	readme-windows.txt \
 	readme.md
 
-.PHONY : all mosquitto api docs binary check clean reallyclean test install uninstall dist sign copy localdocker
+.PHONY : all mosquitto lib api docs binary check clean reallyclean test install uninstall dist sign copy localdocker
 
 all : $(MAKE_ALL)
 
@@ -51,20 +52,24 @@ docs :
 
 binary : mosquitto
 
-mosquitto :
+mosquitto : lib
+	set -e; for d in ${DIRS}; do $(MAKE) -C $${d}; done
+
+lib :
 ifeq ($(UNAME),Darwin)
 	$(error Please compile using CMake on Mac OS X)
 endif
-
-	set -e; for d in ${DIRS}; do $(MAKE) -C $${d}; done
+	set -e; for d in ${LIBDIRS}; do $(MAKE) -C $${d}; done
 
 clean :
 	set -e; for d in ${DIRS}; do $(MAKE) -C $${d} clean; done
+	set -e; for d in ${LIBDIRS}; do $(MAKE) -C $${d} clean; done
 	set -e; for d in ${DOCDIRS}; do $(MAKE) -C $${d} clean; done
 	$(MAKE) -C test clean
 
 reallyclean : 
 	set -e; for d in ${DIRS}; do $(MAKE) -C $${d} reallyclean; done
+	set -e; for d in ${LIBDIRS}; do $(MAKE) -C $${d} reallyclean; done
 	set -e; for d in ${DOCDIRS}; do $(MAKE) -C $${d} reallyclean; done
 	$(MAKE) -C test reallyclean
 	-rm -f *.orig
